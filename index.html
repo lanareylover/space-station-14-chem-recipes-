@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SS14 Chemistry Guide</title>
-    
-    <!-- 🎨 ALL CSS STYLING LIVES HERE NOW -->
     <style>
         :root {
             --bg-main: #141419;
@@ -104,7 +102,6 @@
 </head>
 <body>
 
-    <!-- 🏗️ HTML LAYOUT STRUCTURE -->
     <div class="wrapper">
         <header>
             <h1>Space Station 14 Chemistry Recipes</h1>
@@ -117,17 +114,22 @@
         </main>
     </div>
 
-    <!-- 🧠 ALL JAVASCRIPT DATABASE & LOGIC LIVES HERE NOW -->
     <script>
         const chemicalDatabase = {
             "Medicine": {
-                "bicaridine": { name: "Bicaridine", ingredients: [{amount: 1, name: "carbon"}, {amount: 1, name: "oxygen"}], recipeText: "Mix to create baseline brute healing medicine." }
+                "bicaridine": { name: "Bicaridine", ingredients: [{amount: 1, name: "carbon"}, {amount: 1, name: "oxygen"}], recipeText: "Heals brute damage." },
+                "inaprovaline": { name: "Inaprovaline", ingredients: [{amount: 1, name: "oxygen"}, {amount: 1, name: "carbon"}, {amount: 1, name: "sugar"}], recipeText: "Stabilizes critical patients and acts as a baseline stabilizer." },
+                "dermaline": { name: "Dermaline", ingredients: [{amount: 1, name: "kelotane"}, {amount: 1, name: "oxygen"}, {amount: 1, name: "phosphorus"}], recipeText: "Advanced burn medicine." },
+                "tricordrazine": { name: "Tricordrazine", ingredients: [{amount: 1, name: "inaprovaline"}, {amount: 1, name: "anti-toxin"}], recipeText: "General purpose healing chemical." }
             },
             "Special": {
-                "plastic polymers": { name: "Plastic polymers", ingredients: [{amount: 1, name: "oil"}, {amount: 1, name: "plasticizer"}] }
+                "plastic polymers": { name: "Plastic polymers", ingredients: [{amount: 1, name: "oil"}, {amount: 1, name: "plasticizer"}] },
+                "space cleaner": { name: "Space Cleaner", ingredients: [{amount: 1, name: "water"}, {amount: 1, name: "ammonia"}], recipeText: "Cleans stains and slipping hazards instantly." },
+                "gunpowder": { name: "Gunpowder", ingredients: [{amount: 1, name: "sulfur"}, {amount: 1, name: "carbon"}, {amount: 1, name: "potassium"}], recipeText: "Highly combustible explosive powder." }
             },
             "Other": {
-                "salt": { name: "Salt", ingredients: [{amount: 1, name: "sodium"}, {amount: 1, name: "chlorine"}] }
+                "salt": { name: "Salt", ingredients: [{amount: 1, name: "sodium"}, {amount: 1, name: "chlorine"}] },
+                "ethanol": { name: "Ethanol", ingredients: [{amount: 1, name: "water"}, {amount: 1, name: "carbon"}], recipeText: "Pure alcohol. Used as a reagent or drink component." }
             }
         };
 
