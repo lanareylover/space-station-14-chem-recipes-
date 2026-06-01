@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SS14 Chemistry Guide</title>
+    <title>SS14 Interactive Chemistry Wiki</title>
     <style>
         :root {
             --bg-main: #141419;
@@ -12,18 +12,20 @@
             --border-color: #2b2b33;
             --text-primary: #ffffff;
             --text-secondary: #a0a0b0;
+            --accent-blue: #007acc;
+            --accent-orange: #d97706;
         }
 
         body {
             background-color: var(--bg-main);
             color: var(--text-primary);
-            font-family: sans-serif;
+            font-family: system-ui, -apple-system, sans-serif;
             margin: 0;
             padding: 20px;
         }
 
         .wrapper {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
         }
 
@@ -61,15 +63,15 @@
         }
 
         .tab-btn.active {
-            background: #007acc;
+            background: var(--accent-blue);
             color: #ffffff;
             border-color: #0098ff;
         }
 
         #recipe-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-            gap: 14px;
+            grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+            gap: 16px;
         }
 
         .recipe-card {
@@ -78,25 +80,86 @@
             border-left: 4px solid #6b7280;
             border-radius: 6px;
             padding: 16px;
+            position: relative;
         }
 
         .recipe-card h3 {
             margin-top: 0;
+            margin-bottom: 12px;
             text-transform: capitalize;
+            font-size: 18px;
         }
 
         .ingredient-list {
-            padding-left: 20px;
+            padding-left: 18px;
             color: var(--text-secondary);
+            margin: 8px 0;
+        }
+
+        .ingredient-item {
+            margin-bottom: 4px;
+            position: relative;
+        }
+
+        /* Hover Link Style */
+        .has-recipe {
+            color: #4dabf7;
+            text-decoration: underline dashed 1px;
+            cursor: help;
+        }
+
+        /* Tooltip Container Styling */
+        .tooltip-box {
+            position: absolute;
+            background: #2d2d35;
+            border: 1px solid #454550;
+            border-radius: 6px;
+            padding: 12px;
+            width: 260px;
+            z-index: 1000;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            display: none;
+            color: var(--text-primary);
+            pointer-events: none;
+        }
+
+        .tooltip-box h4 {
+            margin: 0 0 6px 0;
+            color: #fff;
+            border-bottom: 1px solid #444;
+            padding-bottom: 4px;
+            text-transform: capitalize;
+        }
+
+        .tooltip-sub-list {
+            margin: 4px 0;
+            padding-left: 16px;
+            font-size: 13px;
+            color: #b0b0c5;
+        }
+
+        .nested-preview {
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px dashed #555;
+            font-size: 12px;
+            color: #ffd43b;
         }
 
         .recipe-notes {
             margin-top: 10px;
             padding: 6px;
             background: rgba(217, 119, 6, 0.1);
-            border-left: 2px solid #d97706;
+            border-left: 2px solid var(--accent-orange);
             color: #f59e0b;
             font-size: 13px;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .base-chem-msg {
+            font-size: 13px; 
+            color: #666; 
+            margin: 5px 0;
         }
     </style>
 </head>
@@ -104,8 +167,8 @@
 
     <div class="wrapper">
         <header>
-            <h1>Space Station 14 Chemistry Recipes</h1>
-            <input type="text" id="recipe-search" placeholder="Search chemicals or ingredients (e.g., 'plasma')...">
+            <h1>Space Station 14 Chemical Recipes</h1>
+            <input type="text" id="recipe-search" placeholder="Search chemicals or ingredients...">
             <div id="category-tabs"></div>
         </header>
 
@@ -114,69 +177,86 @@
         </main>
     </div>
 
+    <div id="global-tooltip" class="tooltip-box"></div>
+
     <script>
+        // Flat master dictionary containing every element from your data sheet for recursive lookup loops
+        const masterRegistry = {
+            // MEDICINES
+            "aloxadone": { ingredients: [{amount: 1, name: "cryoxadone"}, {amount: 1, name: "leporazine"}, {amount: 1, name: "aloe juice"}], note: "Advanced cryo-healing agent." },
+            "ambuzol": { ingredients: [{amount: 1, name: "dylovene"}, {amount: 1, name: "sugar"}] },
+            "ambuzol plus": { ingredients: [{amount: 1, name: "ambuzol"}, {amount: 1, name: "unstable mutagen"}] },
+            "ammoniated mercury": { ingredients: [{amount: 1, name: "ammonia"}, {amount: 1, name: "mercury"}] },
+            "antihol": { ingredients: [{amount: 1, name: "ethanol"}, {amount: 1, name: "charcoal"}] },
+            "arithrazine": { ingredients: [{amount: 1, name: "bicaridine"}, {amount: 1, name: "iodine"}] },
+            "atropine": { ingredients: [{amount: 1, name: "ethanol"}, {amount: 1, name: "acetone"}, {amount: 1, name: "toxin"}] },
+            "bicaridine": { ingredients: [{amount: 1, name: "carbon"}, {amount: 1, name: "oxygen"}, {amount: 1, name: "inaprovaline"}], note: "Heals brute physical trauma." },
+            "calomel": { ingredients: [{amount: 1, name: "mercury"}, {amount: 1, name: "chlorine"}] },
+            "cryoxadone": { ingredients: [{amount: 1, name: "plasma"}, {amount: 1, name: "oxygen"}, {amount: 1, name: "inaprovaline"}], note: "Requires cold cryogenic modules." },
+            "dermaline": { ingredients: [{amount: 1, name: "kelotane"}, {amount: 1, name: "oxygen"}, {amount: 1, name: "phosphorus"}], note: "Premium burn mitigation fluid." },
+            "dexalin": { ingredients: [{amount: 2, name: "oxygen"}], note: "Mitigates asphyxiation damage instantly." },
+            "dexalin plus": { ingredients: [{amount: 1, name: "dexalin"}, {amount: 1, name: "carbon"}] },
+            "dylovene": { ingredients: [{amount: 1, name: "silicon"}, {amount: 1, name: "nitrogen"}, {amount: 1, name: "potassium"}], note: "Baseline anti-toxin agent." },
+            "epinephrine": { ingredients: [{amount: 1, name: "inaprovaline"}, {amount: 1, name: "carbon"}, {amount: 1, name: "oxygen"}] },
+            "formaldehyde": { ingredients: [{amount: 1, name: "ethanol"}, {amount: 1, name: "oxygen"}] },
+            "hyronalin": { ingredients: [{amount: 1, name: "radium"}, {amount: 1, name: "dylovene"}] },
+            "inaprovaline": { ingredients: [{amount: 1, name: "oxygen"}, {amount: 1, name: "carbon"}, {amount: 1, name: "sugar"}], note: "Standard stabilize compound." },
+            "kelotane": { ingredients: [{amount: 1, name: "silicon"}, {amount: 1, name: "carbon"}, {amount: 1, name: "inaprovaline"}] },
+            "leporazine": { ingredients: [{amount: 1, name: "silicon"}, {amount: 1, name: "plasma"}], note: "Normalizes extreme body heat fluctuations." },
+            "mannitol": { ingredients: [{amount: 1, name: "sugar"}, {amount: 1, name: "water"}, {amount: 1, name: "hydrogen"}], note: "Heals structural brain damage." },
+            "omnizine": { ingredients: [{amount: 1, name: "sugar"}, {amount: 1, name: "phosphorus"}, {amount: 1, name: "unstable mutagen"}] },
+            "saline": { ingredients: [{amount: 1, name: "table salt"}, {amount: 1, name: "water"}] },
+            "synaptizine": { ingredients: [{amount: 1, name: "sugar"}, {amount: 1, name: "lithium"}, {amount: 1, name: "water"}] },
+            "tricordrazine": { ingredients: [{amount: 1, name: "inaprovaline"}, {amount: 1, name: "dylovene"}] },
+
+            // NARCOTICS
+            "bananadine": { ingredients: [{amount: 1, name: "pulped banana peel"}, {amount: 1, name: "ethanol"}] },
+            "ephedrine": { ingredients: [{amount: 1, name: "sugar"}, {amount: 1, name: "oil"}, {amount: 1, name: "hydrogen"}] },
+            "hyperzine": { ingredients: [{amount: 1, name: "sugar"}, {amount: 1, name: "sulfur"}] },
+            "morphine": { ingredients: [{amount: 1, name: "carbon"}, {amount: 1, name: "hydrogen"}, {amount: 1, name: "ethanol"}] },
+            "nicotine": { ingredients: [{amount: 1, name: "cellulose fibers"}] },
+
+            // PYROTECHNICS
+            "black powder": { ingredients: [{amount: 1, name: "sulfur"}, {amount: 1, name: "carbon"}, {amount: 1, name: "potassium"}] },
+            "foaming agent": { ingredients: [{amount: 1, name: "lithium"}, {amount: 1, name: "water"}] },
+            "phlogiston": { ingredients: [{amount: 1, name: "plasma"}, {amount: 1, name: "sulfur"}] },
+            "thermite": { ingredients: [{amount: 1, name: "iron"}, {amount: 1, name: "oxygen"}, {amount: 1, name: "aluminum"}] },
+
+            // TOXINS
+            "amatoxin": { ingredients: [{amount: 1, name: "mold"}, {amount: 1, name: "plasma"}] },
+            "cyanide": { ingredients: [{amount: 1, name: "carbon"}, {amount: 1, name: "nitrogen"}, {amount: 1, name: "hydrogen"}] },
+            "lexorin": { ingredients: [{amount: 1, name: "plasma"}, {amount: 1, name: "hydrogen"}, {amount: 1, name: "chlorine"}] },
+            "toxin": { ingredients: [{amount: 1, name: "plasma"}, {amount: 1, name: "carbon"}] },
+            "unstable mutagen": { ingredients: [{amount: 1, name: "plasma"}, {amount: 1, name: "radium"}, {amount: 1, name: "chlorine"}] },
+
+            // FOODS
+            "sugar": { ingredients: [{amount: 1, name: "carbon"}, {amount: 1, name: "hydrogen"}, {amount: 1, name: "oxygen"}] },
+            "table salt": { ingredients: [{amount: 1, name: "sodium"}, {amount: 1, name: "chlorine"}] },
+            "cannabis butter": { ingredients: [{amount: 1, name: "butter"}, {amount: 2, name: "thc"}] },
+            "chocolate bar": { ingredients: [{amount: 2, name: "cocoa powder"}, {amount: 1, name: "sugar"}, {amount: 1, name: "milk"}] },
+            "sausage": { ingredients: [{amount: 3, name: "protein"}, {amount: 1, name: "table salt"}, {amount: 1, name: "black pepper"}] },
+
+            // BOTANICAL
+            "ammonia": { ingredients: [{amount: 1, name: "hydrogen"}, {amount: 1, name: "nitrogen"}] },
+            "ez nutrient": { ingredients: [{amount: 1, name: "trash"}, {amount: 1, name: "water"}] },
+            "robust harvest": { ingredients: [{amount: 1, name: "unstable mutagen"}, {amount: 1, name: "potassium"}] },
+            "weed killer": { ingredients: [{amount: 1, name: "toxin"}, {amount: 1, name: "sulfuric acid"}] },
+
+            // OTHER BASICS
+            "space cleaner": { ingredients: [{amount: 1, name: "water"}, {amount: 1, name: "ammonia"}] }
+        };
+
+        // Navigation Categories mapping your exact file inputs completely
         const chemicalDatabase = {
-            "Medicine": {
-                "inaprovaline": { name: "Inaprovaline", ingredients: [{amount: 1, name: "oxygen"}, {amount: 1, name: "carbon"}, {amount: 1, name: "sugar"}], recipeText: "Stabilizes critical patients and acts as a baseline stabilizer." },
-                "bicaridine": { name: "Bicaridine", ingredients: [{amount: 1, name: "carbon"}, {amount: 1, name: "oxygen"}, {amount: 1, name: "inaprovaline"}], recipeText: "Heals brute damage." },
-                "kelotane": { name: "Kelotane", ingredients: [{amount: 1, name: "silicon"}, {amount: 1, name: "carbon"}, {amount: 1, name: "inaprovaline"}], recipeText: "Heals burn damage." },
-                "dermaline": { name: "Dermaline", ingredients: [{amount: 1, name: "kelotane"}, {amount: 1, name: "oxygen"}, {amount: 1, name: "phosphorus"}], recipeText: "Advanced burn medicine. Highly effective." },
-                "dylovene": { name: "Dylovene (Anti-Toxin)", ingredients: [{amount: 1, name: "silicon"}, {amount: 1, name: "nitrogen"}, {amount: 1, name: "potassium"}], recipeText: "Purges toxins from the body." },
-                "tricordrazine": { name: "Tricordrazine", ingredients: [{amount: 1, name: "inaprovaline"}, {amount: 1, name: "dylovene"}], recipeText: "General purpose healing chemical." },
-                "cryoxadone": { name: "Cryoxadone", ingredients: [{amount: 1, name: "stable plasma"}, {amount: 1, name: "oxygen"}, {amount: 1, name: "inaprovaline"}], recipeText: "Requires cold temps to work. Excellent for cryo pods." },
-                "leporazine": { name: "Leporazine", ingredients: [{amount: 1, name: "silicon"}, {amount: 1, name: "plasma"}], recipeText: "Regulates body temperature." },
-                "aloxadone": { name: "Aloxadone", ingredients: [{amount: 1, name: "cryoxadone"}, {amount: 1, name: "leporazine"}, {amount: 1, name: "aloe juice"}], recipeText: "Advanced cryo-healing agent." },
-                "hyropatoline": { name: "Hyropatoline", ingredients: [{amount: 1, name: "radium"}, {amount: 1, name: "carbon"}, {amount: 1, name: "bicaridine"}], recipeText: "Heals brute and cellular damage slowly." },
-                "synaptizine": { name: "Synaptizine", ingredients: [{amount: 1, name: "sugar"}, {amount: 1, name: "lithium"}, {amount: 1, name: "water"}], recipeText: "Purges mind-altering chemicals and knocks down stuns." }
-            },
-            "Narcotics": {
-                "space drugs": { name: "Space Drugs", ingredients: [{amount: 1, name: "mercury"}, {amount: 1, name: "sugar"}, {amount: 1, name: "lithium"}], recipeText: "Causes intense hallucinations and loss of balance." },
-                "ephedrine": { name: "Ephedrine", ingredients: [{amount: 1, name: "sugar"}, {amount: 1, name: "oil"}, {amount: 1, name: "hydrogen"}], recipeText: "Stamina and speed boost. High risk of addiction." },
-                "omnizine": { name: "Omnizine", ingredients: [{amount: 1, name: "sugar"}, {amount: 1, name: "phosphorus"}, {amount: 1, name: "unstable mutagen"}], recipeText: "Slowly heals all damage types. Highly narcotic." },
-                "methamphetamine": { name: "Methamphetamine", ingredients: [{amount: 1, name: "ephedrine"}, {amount: 1, name: "iodine"}, {amount: 1, name: "phosphorus"}], recipeText: "Massive speed boost, causes jitters and eventual cardiac collapse if abused." }
-            },
-            "Pyrotechnics": {
-                "gunpowder": { name: "Gunpowder", ingredients: [{amount: 1, name: "sulfur"}, {amount: 1, name: "carbon"}, {amount: 1, name: "potassium"}], recipeText: "Highly combustible explosive powder." },
-                "thermite": { name: "Thermite", ingredients: [{amount: 1, name: "iron"}, {amount: 1, name: "oxygen"}, {amount: 1, name: "aluminum"}], recipeText: "Burns through reinforced walls when ignited." },
-                "flash powder": { name: "Flash Powder", ingredients: [{amount: 1, name: "aluminum"}, {amount: 1, name: "sulfur"}, {amount: 1, name: "potassium"}], recipeText: "Explodes with a blinding flash of light." },
-                "smoke powder": { name: "Smoke Powder", ingredients: [{amount: 1, name: "potassium"}, {amount: 1, name: "sugar"}, {amount: 1, name: "phosphorus"}], recipeText: "Creates massive visibility-blocking cloud." },
-                "phlogiston": { name: "Phlogiston", ingredients: [{amount: 1, name: "plasma"}, {amount: 1, name: "sulfur"}, {amount: 1, name: "stable plasma"}], recipeText: "Ignites instantly upon contact with open air." },
-                "potassium water": { name: "Potassium-Water Reaction", ingredients: [{amount: 1, name: "potassium"}, {amount: 1, name: "water"}], recipeText: "Instant aggressive explosion. Handle with care." }
-            },
-            "Toxins": {
-                "toxin": { name: "Basic Toxin", ingredients: [{amount: 1, name: "plasma"}, {amount: 1, name: "carbon"}], recipeText: "Deals standard toxin damage over time." },
-                "unstable mutagen": { name: "Unstable Mutagen", ingredients: [{amount: 1, name: "plasma"}, {amount: 1, name: "radium"}, {amount: 1, name: "chlorine"}], recipeText: "Causes structural mutations. Used heavily in botany." },
-                "fluorosulfuric acid": { name: "Fluorosulfuric Acid", ingredients: [{amount: 1, name: "sulfuric acid"}, {amount: 1, name: "fluorine"}, {amount: 1, name: "hydrogen"}], recipeText: "Highly corrosive. Melts structures and gear." },
-                "lexorin": { name: "Lexorin", ingredients: [{amount: 1, name: "plasma"}, {amount: 1, name: "hydrogen"}, {amount: 1, name: "chlorine"}], recipeText: "Causes rapid suffocation and tissue damage." },
-                "cyanide": { name: "Cyanide", ingredients: [{amount: 1, name: "carbon"}, {amount: 1, name: "nitrogen"}, {amount: 1, name: "hydrogen"}], recipeText: "Lethal toxin that halts oxygen processing in the bloodstream." },
-                "amatoxin": { name: "Amatoxin", ingredients: [{amount: 1, name: "mycelium extract"}, {amount: 1, name: "plasma"}], recipeText: "Severe fungal toxin that targets internal organs." }
-            },
-            "Foods": {
-                "chocolate bar": { name: "Chocolate Bar", ingredients: [{amount: 2, name: "cocoa powder"}, {amount: 1, name: "sugar"}, {amount: 1, name: "milk"}], recipeText: "Sweet treat that restores nutrition." },
-                "sausage": { name: "Sausage", ingredients: [{amount: 3, name: "meat chunks"}, {amount: 1, name: "salt"}, {amount: 1, name: "black pepper"}], recipeText: "Savory meal component." },
-                "sugar": { name: "Sugar", ingredients: [{amount: 1, name: "carbon"}, {amount: 1, name: "hydrogen"}, {amount: 1, name: "oxygen"}], recipeText: "Basic sweetener and foundational cooking agent." },
-                "cannabis butter": { name: "Cannabis Butter", ingredients: [{amount: 1, name: "butter"}, {amount: 2, name: "thc"}], recipeText: "Used for cooking space edibles." },
-                "caramel": { name: "Caramel", ingredients: [{amount: 2, name: "sugar"}, {amount: 1, name: "water"}], recipeText: "Sweet candy coating." }
-            },
-            "Botanical/Biological": {
-                "ez nutrient": { name: "EZ Nutrient", ingredients: [{amount: 1, name: "leftovers"}, {amount: 1, name: "water"}], recipeText: "Basic plant fertilizer." },
-                "robust harvest": { name: "Robust Harvest", ingredients: [{amount: 1, name: "unstable mutagen"}, {amount: 1, name: "potassium"}], recipeText: "Prevents mutations but doubles crop yield." },
-                "leftovers": { name: "Leftovers", ingredients: [{amount: 1, name: "biomass"}, {amount: 1, name: "water"}], recipeText: "Organic breakdown residue used as base compost." },
-                "pest spray": { name: "Pest Spray", ingredients: [{amount: 1, name: "chlorine"}, {amount: 1, name: "toxin"}], recipeText: "Kills plant pests rapidly." },
-                "weed killer": { name: "Weed Killer", ingredients: [{amount: 1, name: "toxin"}, {amount: 1, name: "acid"}], recipeText: "Clears unwanted invasive weeds from hydro trays." }
-            },
-            "Special": {
-                "plastic polymers": { name: "Plastic Polymers", ingredients: [{amount: 1, name: "oil"}, {amount: 1, name: "plasticizer"}], recipeText: "Used for manufacturing utility components." },
-                "space cleaner": { name: "Space Cleaner", ingredients: [{amount: 1, name: "water"}, {amount: 1, name: "ammonia"}], recipeText: "Cleans stains and slipping hazards instantly." },
-                "structural foam": { name: "Structural Foam", ingredients: [{amount: 1, name: "iron"}, {amount: 1, name: "acid"}, {amount: 1, name: "organic polymers"}], recipeText: "Rapidly patches atmospheric breaches." },
-                "foaming agent": { name: "Foaming Agent", ingredients: [{amount: 1, name: "lithium"}, {amount: 1, name: "water"}], recipeText: "Causes reactions to expand into physical foam clouds." }
-            },
-            "Other": {
-                "salt": { name: "Salt", ingredients: [{amount: 1, name: "sodium"}, {amount: 1, name: "chlorine"}], recipeText: "Basic reagent used in various reactions." },
-                "ethanol": { name: "Ethanol", ingredients: [{amount: 1, name: "water"}, {amount: 1, name: "carbon"}], recipeText: "Pure alcohol. Used as a reagent or drink component." },
-                "sulfuric acid": { name: "Sulfuric Acid", ingredients: [{amount: 1, name: "sulfur"}, {amount: 1, name: "hydrogen"}, {amount: 1, name: "oxygen"}], recipeText: "Aggressive base chemical required for complex syntheses." },
-                "ammonia": { name: "Ammonia", ingredients: [{amount: 1, name: "hydrogen"}, {amount: 1, name: "nitrogen"}], recipeText: "Pungent base gas agent." }
-            }
+            "Medicine": ["Aloxadone", "Ambuzol", "Ambuzol plus", "Ammoniated mercury", "Antihol", "Arithrazine", "Artiplates", "Atropine", "Barozine", "Bicaridine", "Bozaide", "Bruizine", "Calomel", "Cognizine", "Cryoxadone", "Cryptobiolin", "Dermaline", "Devirate", "Dexalin", "Dexalin plus", "Diephendyramine", "Diphenylmethylamine", "Doxarubixadone", "Dylovene", "Ebifin", "Epinephrine", "Ethyloxyephedrine", "ethylredoxrazine", "Formaldehyde", "Genecide", "Haloperidol", "Hercuri", "Herignis", "Heroin", "Holy water", "Hyronalin", "Ibuprofen", "Immurin", "Inaprovaline", "Insuzine", "Ipecac", "Kelatane", "Lacerinol", "Leporazine", "Lipozine", "Luzurium", "Mannitol", "Minersslavine", "Mitogen", "Monover", "Multiver", "Musiver", "Necrosol", "Oculine", "Omnizine", "Opporozidone", "Oxandrolone", "Oxycodone", "Pentenic acid", "Phalanximine", "Polypyrylium oligomers", "Potassium iodine", "Protibal", "Procenyl lazide", "Procenyl lazide sludge", "Psicodine", "Pulped banana peel", "Puncturase", "Pyrazine salicylic acid", "Saline", "Seraka extract", "Siderlac", "Sigynate", "Silver sulfadiazine", "Shlasherium", "Spaceacilin", "Stasizium", "Stellibinin", "Styptic crystal catalyst", "Styptic powder", "Synaptizine", "Synthcells", "Syriniver", "Tehifin", "Tramadol tranexamic acid", "Tricordrazine", "Ultravasculine", "Umbroxol", "Vitrium froth"],
+            "Narcotics": ["Alien sedative", "Aranesp", "Bananadine", "Blind toxin", "Desixyephedrine", "Dimtrimethic neuraminxyl acid", "Ephedrine", "Fentanyl", "Happiness", "Hyperzine", "Impedrezene", "Morphine", "Mouse bites", "Mute toxin", "Nicotine", "Nitrosyl plasmide", "Noxturine", "Norepineephric acid", "Oleoresin capsaicin", "Pax", "Shadowling toxin", "Space mirage", "Tear gas", "THC"],
+            "Pyrotechnics": ["Ammonium nitrate fuel oil", "Black powder", "Chlorine trifluoride", "Cyclonite", "Fluorosurfactant", "Foaming agent", "Hexamine", "Methanol", "Napalm", "Octogen", "Phlogiston", "Thermite", "Welding fuel"],
+            "Toxins": ["Aluite", "Amatoxin", "Anacea", "Bingle juice", "Bungotoxin", "Buzzochloric bees", "Carpolin", "Carpotoxin", "Cat drugs", "Chloral hydrate", "Corgium", "Crapotoxin", "Cyanide", "Ferrochromic acid", "Fresium", "Gastrotoxin", "Heartbreaker toxin", "Histamine", "Honk", "Juice that makes you hew", "Juice that makees you weh", "Lead", "Lexorin", "Licoxide", "Liplocide", "Liquid entropy", "Mechantoxin", "Microplastics", "Mindbreaker toxin", "Mold", "Nevcotta powder", "Nitric acid", "Pendetide", "Polytrinic acid", "Profanol", "Razorium", "Romerol", "Sarin", "Sulfuric acid", "Tazinide", "Theobromine", "Tirizene", "Toxin", "Tranquility", "Trash", "Triclor", "Unholy water", "Unstable mutagen", "Vent crud", "Vestome"],
+            "Foods": ["Allicin", "Astrotame", "Bbq sauce", "Black pepper", "Butter", "Capsaicin oil", "Cocoa powder", "Cold sauce", "Cooked egg", "Cornoil", "Cornmeal", "Flour", "Frost oil", "Horseradish sauce", "Hot sauce", "Ketchunaise", "Ketchup", "Laughin syrup", "Mayonnaise", "Mitotrophin", "Mustard", "Nutriment", "Oats", "Oil", "Olive oil", "Protein", "Pumpkin flesh", "Raw egg", "Rice", "Soy cause", "Sugar", "Syrup", "Table salt", "Tea powder", "Uncooked animal proteins", "Universal enzyme", "Vinaigrette", "Vinegar", "Vitamin", "Cannabis butter", "Chocolate bar", "Sausage"],
+            "Botanical": ["Ammonia", "Ammonium nitrate", "Diethylamine", "Ez nutrient", "Left 4 zed", "Pest killer", "Plant b gone", "Potash", "Potassium sulfate", "Robust harvest", "Saltpeter", "Sedin", "Weed killer"],
+            "Biological": ["Advanced mutation toxin", "Alien blood", "Anaerobic blood", "Black blood", "Blood", "blue blood", "Cellulose fibers", "Fat", "Felinid mutation toxin", "Gender fluid", "Green slime jelly", "Grey matter", "Human mutation toxin", "Ichor", "Insect blood", "Rororium", "Sap", "Slime", "Slime boost", "Slime chilling helly", "Slime destabilizer", "Slime docility extract", "Slime stabilizer", "Slime steroid", "Slime toxin", "Vomit", "Zombie blood"],
+            "Special": ["Carpetium", "Copium", "Laughter", "Nostalgia", "Tilenol"],
+            "Other": ["Acetic anhydride", "Acetone", "Artifact glue", "Artifexium", "Ash", "Benzene", "Bleash", "Bz", "Carbon dioxide", "Charcoal", "Cream", "Cryostylane", "Eldritch essence", "Ethenone", "Fersilicite", "Fiber", "Frezon", "Goats milk", "Ground bee", "Healium", "Hydroxide", "Ice", "Methane", "Milk", "Mugwort tea", "Nitrium", "Nitrogen", "Nitrous oxide", "Nothing", "Oat milk", "Oxygen", "Phenol", "Plasma", "Saxoite", "Soap", "Sodium bicarbonate", "Sodium carbonate", "Sodium hydroxide", "Sodium polyacrylate", "Soy milk", "Space cleaner", "Space glue", "Space lube", "Spoil milk", "Thick smoke", "Tritium"]
         };
 
         let currentCategory = 'Medicine';
@@ -186,6 +266,7 @@
             renderTabs();
             renderRecipes();
             setupSearch();
+            setupTooltipEngine();
         }
 
         function renderTabs() {
@@ -222,32 +303,110 @@
             if (!displayGrid) return;
             displayGrid.innerHTML = '';
 
-            const activeCategoryData = chemicalDatabase[currentCategory] || {};
+            const activeList = chemicalDatabase[currentCategory] || [];
             
-            Object.keys(activeCategoryData).forEach(key => {
-                const item = activeCategoryData[key];
-                const matchesName = item.name.toLowerCase().includes(searchQuery);
-                const matchesIngredients = item.ingredients && item.ingredients.some(ing => ing.name.toLowerCase().includes(searchQuery));
+            activeList.forEach(chemName => {
+                const lowerName = chemName.toLowerCase();
+                const matchedConfig = masterRegistry[lowerName];
+
+                // Filter mechanics
+                const matchesName = chemName.toLowerCase().includes(searchQuery);
+                let matchesIngredients = false;
+                if (matchedConfig && matchedConfig.ingredients) {
+                    matchesIngredients = matchedConfig.ingredients.some(ing => ing.name.toLowerCase().includes(searchQuery));
+                }
 
                 if (searchQuery && !matchesName && !matchesIngredients) return;
 
                 const card = document.createElement('div');
                 card.className = 'recipe-card';
+                
+                let cardHTML = `<h3>${chemName}</h3>`;
 
-                let cardHTML = `<h3>${item.name}</h3>`;
-                if (item.ingredients) {
+                if (matchedConfig && matchedConfig.ingredients) {
                     cardHTML += `<ul class="ingredient-list">`;
-                    item.ingredients.forEach(ing => {
-                        cardHTML += `<li><strong>${ing.amount}u</strong> ${ing.name}</li>`;
+                    matchedConfig.ingredients.forEach(ing => {
+                        const ingLower = ing.name.toLowerCase();
+                        const trackingClass = masterRegistry[ingLower] ? 'class="has-recipe"' : '';
+                        cardHTML += `<li class="ingredient-item"><span ${trackingClass} data-chem="${ingLower}"><strong>${ing.amount}u</strong> ${ing.name}</span></li>`;
                     });
                     cardHTML += `</ul>`;
-                }
-                if (item.recipeText) {
-                    cardHTML += `<div class="recipe-notes">${item.recipeText}</div>`;
+                    if (matchedConfig.note) {
+                        cardHTML += `<div class="recipe-notes">${matchedConfig.note}</div>`;
+                    }
+                } else {
+                    cardHTML += `<div class="base-chem-msg">Base ingredient or unmapped recipe</div>`;
                 }
 
                 card.innerHTML = cardHTML;
                 displayGrid.appendChild(card);
+            });
+        }
+
+        // Deep Tooltip Rendering Engine
+        function setupTooltipEngine() {
+            const tooltip = document.getElementById('global-tooltip');
+
+            document.body.addEventListener('mouseover', (e) => {
+                const target = e.target.closest('.has-recipe');
+                if (!target) return;
+
+                const targetChem = target.getAttribute('data-chem');
+                const data = masterRegistry[targetChem];
+                if (!data) return;
+
+                // Build top tier item layout
+                let tooltipHTML = `<h4>${targetChem}</h4>`;
+                tooltipHTML += `<ul class="tooltip-sub-list">`;
+                
+                data.ingredients.forEach(ing => {
+                    tooltipHTML += `<li><strong>${ing.amount}u</strong> ${ing.name}</li>`;
+                });
+                tooltipHTML += `</ul>`;
+
+                // RECURSIVE LOOKUP: Look deep inside to see if ingredients have recipes of their own
+                let subNestedHTML = '';
+                data.ingredients.forEach(ing => {
+                    const subChemName = ing.name.toLowerCase();
+                    const subData = masterRegistry[subChemName];
+                    if (subData) {
+                        subNestedHTML += `<div class="nested-preview">➔ <strong>${subChemName}:</strong> `;
+                        subNestedHTML += subData.ingredients.map(i => `${i.amount}u ${i.name}`).join(' + ');
+                        subNestedHTML += `</div>`;
+                    }
+                });
+
+                if (subNestedHTML) {
+                    tooltipHTML += subNestedHTML;
+                }
+
+                tooltip.innerHTML = tooltipHTML;
+                tooltip.style.display = 'block';
+            });
+
+            document.body.addEventListener('mousemove', (e) => {
+                if (tooltip.style.display === 'block') {
+                    // Position offsets to dynamic screen dimensions
+                    const offsetX = 15;
+                    const offsetY = 15;
+                    
+                    let targetX = e.pageX + offsetX;
+                    let targetY = e.pageY + offsetY;
+
+                    // Bound checks to avoid edge bleeding
+                    if (targetX + 280 > window.innerWidth + window.scrollX) {
+                        targetX = e.pageX - 290;
+                    }
+
+                    tooltip.style.left = targetX + 'px';
+                    tooltip.style.top = targetY + 'px';
+                }
+            });
+
+            document.body.addEventListener('mouseout', (e) => {
+                if (e.target.closest('.has-recipe')) {
+                    tooltip.style.display = 'none';
+                }
             });
         }
 
