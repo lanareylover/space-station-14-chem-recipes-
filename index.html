@@ -117,19 +117,65 @@
     <script>
         const chemicalDatabase = {
             "Medicine": {
-                "bicaridine": { name: "Bicaridine", ingredients: [{amount: 1, name: "carbon"}, {amount: 1, name: "oxygen"}], recipeText: "Heals brute damage." },
                 "inaprovaline": { name: "Inaprovaline", ingredients: [{amount: 1, name: "oxygen"}, {amount: 1, name: "carbon"}, {amount: 1, name: "sugar"}], recipeText: "Stabilizes critical patients and acts as a baseline stabilizer." },
-                "dermaline": { name: "Dermaline", ingredients: [{amount: 1, name: "kelotane"}, {amount: 1, name: "oxygen"}, {amount: 1, name: "phosphorus"}], recipeText: "Advanced burn medicine." },
-                "tricordrazine": { name: "Tricordrazine", ingredients: [{amount: 1, name: "inaprovaline"}, {amount: 1, name: "anti-toxin"}], recipeText: "General purpose healing chemical." }
+                "bicaridine": { name: "Bicaridine", ingredients: [{amount: 1, name: "carbon"}, {amount: 1, name: "oxygen"}, {amount: 1, name: "inaprovaline"}], recipeText: "Heals brute damage." },
+                "kelotane": { name: "Kelotane", ingredients: [{amount: 1, name: "silicon"}, {amount: 1, name: "carbon"}, {amount: 1, name: "inaprovaline"}], recipeText: "Heals burn damage." },
+                "dermaline": { name: "Dermaline", ingredients: [{amount: 1, name: "kelotane"}, {amount: 1, name: "oxygen"}, {amount: 1, name: "phosphorus"}], recipeText: "Advanced burn medicine. Highly effective." },
+                "dylovene": { name: "Dylovene (Anti-Toxin)", ingredients: [{amount: 1, name: "silicon"}, {amount: 1, name: "nitrogen"}, {amount: 1, name: "potassium"}], recipeText: "Purges toxins from the body." },
+                "tricordrazine": { name: "Tricordrazine", ingredients: [{amount: 1, name: "inaprovaline"}, {amount: 1, name: "dylovene"}], recipeText: "General purpose healing chemical." },
+                "cryoxadone": { name: "Cryoxadone", ingredients: [{amount: 1, name: "stable plasma"}, {amount: 1, name: "oxygen"}, {amount: 1, name: "inaprovaline"}], recipeText: "Requires cold temps to work. Excellent for cryo pods." },
+                "leporazine": { name: "Leporazine", ingredients: [{amount: 1, name: "silicon"}, {amount: 1, name: "plasma"}], recipeText: "Regulates body temperature." },
+                "aloxadone": { name: "Aloxadone", ingredients: [{amount: 1, name: "cryoxadone"}, {amount: 1, name: "leporazine"}, {amount: 1, name: "aloe juice"}], recipeText: "Advanced cryo-healing agent." },
+                "hyropatoline": { name: "Hyropatoline", ingredients: [{amount: 1, name: "radium"}, {amount: 1, name: "carbon"}, {amount: 1, name: "bicaridine"}], recipeText: "Heals brute and cellular damage slowly." },
+                "synaptizine": { name: "Synaptizine", ingredients: [{amount: 1, name: "sugar"}, {amount: 1, name: "lithium"}, {amount: 1, name: "water"}], recipeText: "Purges mind-altering chemicals and knocks down stuns." }
+            },
+            "Narcotics": {
+                "space drugs": { name: "Space Drugs", ingredients: [{amount: 1, name: "mercury"}, {amount: 1, name: "sugar"}, {amount: 1, name: "lithium"}], recipeText: "Causes intense hallucinations and loss of balance." },
+                "ephedrine": { name: "Ephedrine", ingredients: [{amount: 1, name: "sugar"}, {amount: 1, name: "oil"}, {amount: 1, name: "hydrogen"}], recipeText: "Stamina and speed boost. High risk of addiction." },
+                "omnizine": { name: "Omnizine", ingredients: [{amount: 1, name: "sugar"}, {amount: 1, name: "phosphorus"}, {amount: 1, name: "unstable mutagen"}], recipeText: "Slowly heals all damage types. Highly narcotic." },
+                "methamphetamine": { name: "Methamphetamine", ingredients: [{amount: 1, name: "ephedrine"}, {amount: 1, name: "iodine"}, {amount: 1, name: "phosphorus"}], recipeText: "Massive speed boost, causes jitters and eventual cardiac collapse if abused." }
+            },
+            "Pyrotechnics": {
+                "gunpowder": { name: "Gunpowder", ingredients: [{amount: 1, name: "sulfur"}, {amount: 1, name: "carbon"}, {amount: 1, name: "potassium"}], recipeText: "Highly combustible explosive powder." },
+                "thermite": { name: "Thermite", ingredients: [{amount: 1, name: "iron"}, {amount: 1, name: "oxygen"}, {amount: 1, name: "aluminum"}], recipeText: "Burns through reinforced walls when ignited." },
+                "flash powder": { name: "Flash Powder", ingredients: [{amount: 1, name: "aluminum"}, {amount: 1, name: "sulfur"}, {amount: 1, name: "potassium"}], recipeText: "Explodes with a blinding flash of light." },
+                "smoke powder": { name: "Smoke Powder", ingredients: [{amount: 1, name: "potassium"}, {amount: 1, name: "sugar"}, {amount: 1, name: "phosphorus"}], recipeText: "Creates massive visibility-blocking cloud." },
+                "phlogiston": { name: "Phlogiston", ingredients: [{amount: 1, name: "plasma"}, {amount: 1, name: "sulfur"}, {amount: 1, name: "stable plasma"}], recipeText: "Ignites instantly upon contact with open air." },
+                "potassium water": { name: "Potassium-Water Reaction", ingredients: [{amount: 1, name: "potassium"}, {amount: 1, name: "water"}], recipeText: "Instant aggressive explosion. Handle with care." }
+            },
+            "Toxins": {
+                "toxin": { name: "Basic Toxin", ingredients: [{amount: 1, name: "plasma"}, {amount: 1, name: "carbon"}], recipeText: "Deals standard toxin damage over time." },
+                "unstable mutagen": { name: "Unstable Mutagen", ingredients: [{amount: 1, name: "plasma"}, {amount: 1, name: "radium"}, {amount: 1, name: "chlorine"}], recipeText: "Causes structural mutations. Used heavily in botany." },
+                "fluorosulfuric acid": { name: "Fluorosulfuric Acid", ingredients: [{amount: 1, name: "sulfuric acid"}, {amount: 1, name: "fluorine"}, {amount: 1, name: "hydrogen"}], recipeText: "Highly corrosive. Melts structures and gear." },
+                "lexorin": { name: "Lexorin", ingredients: [{amount: 1, name: "plasma"}, {amount: 1, name: "hydrogen"}, {amount: 1, name: "chlorine"}], recipeText: "Causes rapid suffocation and tissue damage." },
+                "cyanide": { name: "Cyanide", ingredients: [{amount: 1, name: "carbon"}, {amount: 1, name: "nitrogen"}, {amount: 1, name: "hydrogen"}], recipeText: "Lethal toxin that halts oxygen processing in the bloodstream." },
+                "amatoxin": { name: "Amatoxin", ingredients: [{amount: 1, name: "mycelium extract"}, {amount: 1, name: "plasma"}], recipeText: "Severe fungal toxin that targets internal organs." }
+            },
+            "Foods": {
+                "chocolate bar": { name: "Chocolate Bar", ingredients: [{amount: 2, name: "cocoa powder"}, {amount: 1, name: "sugar"}, {amount: 1, name: "milk"}], recipeText: "Sweet treat that restores nutrition." },
+                "sausage": { name: "Sausage", ingredients: [{amount: 3, name: "meat chunks"}, {amount: 1, name: "salt"}, {amount: 1, name: "black pepper"}], recipeText: "Savory meal component." },
+                "sugar": { name: "Sugar", ingredients: [{amount: 1, name: "carbon"}, {amount: 1, name: "hydrogen"}, {amount: 1, name: "oxygen"}], recipeText: "Basic sweetener and foundational cooking agent." },
+                "cannabis butter": { name: "Cannabis Butter", ingredients: [{amount: 1, name: "butter"}, {amount: 2, name: "thc"}], recipeText: "Used for cooking space edibles." },
+                "caramel": { name: "Caramel", ingredients: [{amount: 2, name: "sugar"}, {amount: 1, name: "water"}], recipeText: "Sweet candy coating." }
+            },
+            "Botanical/Biological": {
+                "ez nutrient": { name: "EZ Nutrient", ingredients: [{amount: 1, name: "leftovers"}, {amount: 1, name: "water"}], recipeText: "Basic plant fertilizer." },
+                "robust harvest": { name: "Robust Harvest", ingredients: [{amount: 1, name: "unstable mutagen"}, {amount: 1, name: "potassium"}], recipeText: "Prevents mutations but doubles crop yield." },
+                "leftovers": { name: "Leftovers", ingredients: [{amount: 1, name: "biomass"}, {amount: 1, name: "water"}], recipeText: "Organic breakdown residue used as base compost." },
+                "pest spray": { name: "Pest Spray", ingredients: [{amount: 1, name: "chlorine"}, {amount: 1, name: "toxin"}], recipeText: "Kills plant pests rapidly." },
+                "weed killer": { name: "Weed Killer", ingredients: [{amount: 1, name: "toxin"}, {amount: 1, name: "acid"}], recipeText: "Clears unwanted invasive weeds from hydro trays." }
             },
             "Special": {
-                "plastic polymers": { name: "Plastic polymers", ingredients: [{amount: 1, name: "oil"}, {amount: 1, name: "plasticizer"}] },
+                "plastic polymers": { name: "Plastic Polymers", ingredients: [{amount: 1, name: "oil"}, {amount: 1, name: "plasticizer"}], recipeText: "Used for manufacturing utility components." },
                 "space cleaner": { name: "Space Cleaner", ingredients: [{amount: 1, name: "water"}, {amount: 1, name: "ammonia"}], recipeText: "Cleans stains and slipping hazards instantly." },
-                "gunpowder": { name: "Gunpowder", ingredients: [{amount: 1, name: "sulfur"}, {amount: 1, name: "carbon"}, {amount: 1, name: "potassium"}], recipeText: "Highly combustible explosive powder." }
+                "structural foam": { name: "Structural Foam", ingredients: [{amount: 1, name: "iron"}, {amount: 1, name: "acid"}, {amount: 1, name: "organic polymers"}], recipeText: "Rapidly patches atmospheric breaches." },
+                "foaming agent": { name: "Foaming Agent", ingredients: [{amount: 1, name: "lithium"}, {amount: 1, name: "water"}], recipeText: "Causes reactions to expand into physical foam clouds." }
             },
             "Other": {
-                "salt": { name: "Salt", ingredients: [{amount: 1, name: "sodium"}, {amount: 1, name: "chlorine"}] },
-                "ethanol": { name: "Ethanol", ingredients: [{amount: 1, name: "water"}, {amount: 1, name: "carbon"}], recipeText: "Pure alcohol. Used as a reagent or drink component." }
+                "salt": { name: "Salt", ingredients: [{amount: 1, name: "sodium"}, {amount: 1, name: "chlorine"}], recipeText: "Basic reagent used in various reactions." },
+                "ethanol": { name: "Ethanol", ingredients: [{amount: 1, name: "water"}, {amount: 1, name: "carbon"}], recipeText: "Pure alcohol. Used as a reagent or drink component." },
+                "sulfuric acid": { name: "Sulfuric Acid", ingredients: [{amount: 1, name: "sulfur"}, {amount: 1, name: "hydrogen"}, {amount: 1, name: "oxygen"}], recipeText: "Aggressive base chemical required for complex syntheses." },
+                "ammonia": { name: "Ammonia", ingredients: [{amount: 1, name: "hydrogen"}, {amount: 1, name: "nitrogen"}], recipeText: "Pungent base gas agent." }
             }
         };
 
